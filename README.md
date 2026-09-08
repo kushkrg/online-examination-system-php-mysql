@@ -14,7 +14,7 @@ tags:
   - exam-portal
   - student-management
 author: "Kush"
-date: "2025-05-19"
+date: "2026-09-08"
 category: "Web Development"
 readTime: "12 min read"
 cover_image: "/images/online-exam-system-cover.png"
@@ -712,11 +712,11 @@ copies or substantial portions of the Software.
 
 ## Author
 
-Built with ❤️ by **Kush**
+Built with ❤️ by **Lavkush K.**
 
-- 🎬 YouTube: [Your Channel](https://youtube.com/@yourchannel)
-- 📝 Blog: [Your Blog](https://yourblog.com)
-- 🐙 GitHub: [Your GitHub](https://github.com/yourusername)
+- 🎬 YouTube: [CodingCush](https://youtube.com/@codingcush)
+- 📝 Blog: [CodingCush](https://codingcush.com)
+- 🐙 GitHub: [CodingCush](https://github.com/kushkrg)
 
 ---
 
