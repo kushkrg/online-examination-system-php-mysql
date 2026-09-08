@@ -3,22 +3,21 @@ title: "Build a Full-Stack Online Examination System with PHP & MySQL — Comple
 slug: "online-examination-system-php-mysql"
 description: "A complete, production-ready Online Examination System built with pure PHP (MVC), MySQL, and Bootstrap 5. Includes admin panel, student portal, real-time proctoring, CSV question import, role-based access, and AJAX-powered dashboards. Free & open source."
 tags:
-  - php
-  - mysql
-  - online-exam-system
-  - mvc
-  - bootstrap5
-  - admin-panel
-  - open-source
-  - web-development
-  - exam-portal
-  - student-management
-author: "Kush"
+  - php-project
+  - online-exam-portal
+  - online-examination-system
+  - mvc-project
+  - exam-portal-with-admin-panel
+  - open-source-php-project
+  - web-development-projects
+  - exam-portal-project
+  - online-test-system
+author: "Lavkush K."
 date: "2026-09-08"
-category: "Web Development"
+category: "PHP Porject"
 readTime: "12 min read"
 cover_image: "/images/online-exam-system-cover.png"
-canonical_url: "https://yourblog.com/online-examination-system-php-mysql"
+canonical_url: "https://codingcush.com/online-examination-system-php-mysql"
 ---
 
 # 🚀 Online Examination System — Full-Stack PHP & MySQL
@@ -620,7 +619,7 @@ After importing `database.sql`, use these credentials to log in:
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | `admin@exam.com` | `password` |
+| Admin | `admin@example.com` | `password` |
 | Student | Register via the homepage | — |
 
 > ⚠️ **Security Warning:** Change the default admin password immediately after first login in production.
