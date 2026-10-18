@@ -25,5 +25,9 @@ No database changes: existing installs only need the updated files.
 - **Homepage "Exam(s) Live" counted every published exam,** including upcoming and ended ones.
 - **Admin dashboard greeting and avatar** now use the logged-in user's name ("Welcome back, Super Admin!").
 
+### Database
+- **`database.sql` now imports on XAMPP/MariaDB.** It was a MySQL 9 dump using the `utf8mb4_0900_ai_ci` collation, which MariaDB rejects (error 1273). It now uses `utf8mb4_unicode_ci`, creates the `online_exam_db` database itself, and keeps the 2 sample exams with 27 questions.
+- **Personal data removed.** Test accounts (with email addresses and password hashes) and their attempts were removed; only the default admin `admin@example.com` / `password` remains.
+
 ### Docs
 - README: default admin email corrected to `admin@example.com` (matches `database.sql`), table count corrected to 6, upload rules and the examiner role documented.

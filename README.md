@@ -339,12 +339,12 @@ mysql -u root -p
 ```
 
 ```sql
-CREATE DATABASE exam_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE online_exam_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 EXIT;
 ```
 
 ```bash
-mysql -u root -p exam_system < database.sql
+mysql -u root -p online_exam_db < database.sql
 ```
 
 ### Step 3 — Configure Database Connection
@@ -353,7 +353,7 @@ Open `app/Config/Database.php` and update:
 
 ```php
 private $host     = 'localhost';
-private $db_name  = 'exam_system';       // your DB name
+private $db_name  = 'online_exam_db';       // your DB name
 private $username = 'root';              // your MySQL user
 private $password = '';                  // your MySQL password
 ```
@@ -461,13 +461,13 @@ sudo chmod -R 775 /var/www/exam-system/public/uploads
 sudo mysql -u root -p
 ```
 ```sql
-CREATE DATABASE exam_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE online_exam_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'examuser'@'localhost' IDENTIFIED BY 'StrongPass@123';
-GRANT ALL PRIVILEGES ON exam_system.* TO 'examuser'@'localhost';
+GRANT ALL PRIVILEGES ON online_exam_db.* TO 'examuser'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 
-mysql -u examuser -p exam_system < /var/www/exam-system/database.sql
+mysql -u examuser -p online_exam_db < /var/www/exam-system/database.sql
 ```
 
 #### Step 4 — Configure Apache Virtual Host
@@ -534,7 +534,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: exam_system
+      MYSQL_DATABASE: online_exam_db
       MYSQL_USER: examuser
       MYSQL_PASSWORD: exampass
     volumes:
@@ -550,7 +550,7 @@ volumes:
 Update `app/Config/Database.php`:
 ```php
 private $host     = 'db';           // Docker service name
-private $db_name  = 'exam_system';
+private $db_name  = 'online_exam_db';
 private $username = 'examuser';
 private $password = 'exampass';
 ```
@@ -569,7 +569,7 @@ Open → **http://localhost:8080**
 
 ```php
 private $host     = 'localhost';    // DB host
-private $db_name  = 'exam_system';  // DB name
+private $db_name  = 'online_exam_db';  // DB name
 private $username = 'root';         // DB user
 private $password = '';             // DB password
 private $charset  = 'utf8mb4';      // Always use utf8mb4

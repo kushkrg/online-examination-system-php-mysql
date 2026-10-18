@@ -1,8 +1,9 @@
--- MySQL dump 10.13  Distrib 9.6.0, for macos26.2 (arm64)
---
--- Host: localhost    Database: online_exam_db
--- ------------------------------------------------------
--- Server version	9.6.0
+-- Online Examination System - database schema and sample data
+-- Works with MySQL 5.7+/8+ and MariaDB 10.4+ (XAMPP).
+-- Default admin: admin@example.com / password  (change it after first login)
+
+CREATE DATABASE IF NOT EXISTS `online_exam_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `online_exam_db`;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,7 +38,7 @@ CREATE TABLE `exam_attempts` (
   KEY `exam_id` (`exam_id`),
   CONSTRAINT `exam_attempts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `exam_attempts_ibfk_2` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,7 +47,6 @@ CREATE TABLE `exam_attempts` (
 
 LOCK TABLES `exam_attempts` WRITE;
 /*!40000 ALTER TABLE `exam_attempts` DISABLE KEYS */;
-INSERT INTO `exam_attempts` VALUES (1,2,1,'2026-05-19 02:36:19','2026-05-19 03:26:56',0.00,'evaluated',0,0),(2,4,1,'2026-05-19 16:45:09','2026-05-19 16:53:28',0.75,'evaluated',3,0),(3,5,1,'2026-09-08 16:19:14','2026-09-08 16:19:40',1.50,'evaluated',0,0),(4,5,3,'2026-09-08 16:19:56','2026-09-08 16:27:28',3.00,'evaluated',3,0),(5,5,1,'2026-09-08 16:31:36',NULL,0.00,'in_progress',1,0),(6,5,3,'2026-09-08 16:32:00','2026-09-08 16:33:25',5.00,'evaluated',1,0);
 /*!40000 ALTER TABLE `exam_attempts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -73,7 +73,7 @@ CREATE TABLE `exams` (
   PRIMARY KEY (`id`),
   KEY `created_by` (`created_by`),
   CONSTRAINT `exams_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -101,7 +101,7 @@ CREATE TABLE `options` (
   PRIMARY KEY (`id`),
   KEY `question_id` (`question_id`),
   CONSTRAINT `options_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,7 +131,7 @@ CREATE TABLE `questions` (
   PRIMARY KEY (`id`),
   KEY `exam_id` (`exam_id`),
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -165,7 +165,7 @@ CREATE TABLE `student_answers` (
   CONSTRAINT `student_answers_ibfk_1` FOREIGN KEY (`attempt_id`) REFERENCES `exam_attempts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `student_answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `student_answers_ibfk_3` FOREIGN KEY (`selected_option_id`) REFERENCES `options` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -174,7 +174,6 @@ CREATE TABLE `student_answers` (
 
 LOCK TABLES `student_answers` WRITE;
 /*!40000 ALTER TABLE `student_answers` DISABLE KEYS */;
-INSERT INTO `student_answers` VALUES (2,2,2,5,NULL,1.00),(3,2,4,18,NULL,-0.25),(4,3,2,5,NULL,1.00),(5,3,3,11,NULL,-0.25),(6,3,4,18,NULL,-0.25),(7,3,5,19,NULL,1.00),(8,4,17,46,NULL,1.00),(9,4,19,51,NULL,0.00),(10,4,21,54,NULL,1.00),(11,4,22,56,NULL,1.00),(12,6,9,30,NULL,1.00),(13,6,10,32,NULL,1.00),(14,6,11,35,NULL,0.00),(15,6,12,36,NULL,1.00),(16,6,13,38,NULL,1.00),(17,6,15,43,NULL,0.00),(18,6,16,44,NULL,1.00);
 /*!40000 ALTER TABLE `student_answers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -196,7 +195,7 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -205,7 +204,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Super Admin','admin@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','admin',NULL,'active','2026-05-18 20:26:17'),(2,'John Doe','student@example.com','$2y$12$lXb/0cZqNjl.pU9UV7QueumJ0Ou3g55wkCGl.gp231uYDRP5/3mxe','student','New York','active','2026-05-18 20:56:51'),(3,'Final Test','admin@test.com','$2y$12$DXVB0XpdAfw.797JmfN4P.24h6RK/5uWdiDUP3f3TM.tomypwxFlK','student','New York','active','2026-05-18 23:06:18'),(4,'Kush','kush@gmail.com','$2y$12$c5R9LVmkmw4aaipnMzEdge6PzVEwhlmfAM6rYXiPhcVHybb/u7fnK','student','Delhi','active','2026-05-19 11:14:36'),(5,'Lavkush kumar','kushkrg@gmail.com','$2y$12$SKJ8on5Z/btlSQxjXz7UIOgOTbW6Mj3NFMAp.hLqrwubZGsP7IN6u','student','Nasriganj','active','2026-09-08 10:48:52');
+INSERT INTO `users` VALUES (1,'Super Admin','admin@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','admin',NULL,'active','2026-05-18 20:26:17');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
