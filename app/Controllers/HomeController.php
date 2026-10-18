@@ -25,6 +25,7 @@ class HomeController {
         ");
         $stmt->execute();
         $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $liveCount = count(array_filter($exams, fn($e) => \App\Models\Exam::availability($e) === 'live'));
 
         $title = 'Welcome — Online Exam Portal';
         require_once __DIR__ . '/../Views/home.php';

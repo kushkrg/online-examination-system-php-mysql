@@ -91,8 +91,9 @@ Most open-source exam systems are either too heavy (WordPress plugins, Laravel m
 - **Users Module** — Manage all roles (Admin / Examiner / Student), create/edit/delete users, role-based colour themes
 
 ### 🎓 Student Portal (`/student/dashboard`)
-- Browse available exams
-- Fullscreen exam engine with auto-save answers
+- Browse available exams (only live exams can be started; upcoming and ended ones are locked)
+- **My Results** — history of every submitted exam with score, pass/fail and integrity
+- Fullscreen exam engine with auto-save answers (leaving full screen is logged as a violation)
 - Tab-switch violation detection & logging
 - Timer with auto-submit
 - Instant result page with score breakdown
@@ -185,7 +186,7 @@ Browser Request
 
 ## Database Schema
 
-The system uses **5 core tables** with foreign key constraints and `ON DELETE CASCADE` for data integrity.
+The system uses **6 core tables** with foreign key constraints and `ON DELETE CASCADE` for data integrity.
 
 ```sql
 -- Users table (all roles)
@@ -581,8 +582,8 @@ Image uploads are stored in:
 public/uploads/questions/
 ```
 
-Supported formats: **JPG, PNG, GIF, WebP**  
-Maximum size: Controlled by your `php.ini`:
+Supported formats: **JPG, PNG, GIF, WebP** — the file is checked as a real image and renamed on upload; anything else is rejected.  
+Maximum size: **5 MB** per image, also limited by your `php.ini`:
 ```ini
 upload_max_filesize = 10M
 post_max_size = 12M
@@ -628,17 +629,18 @@ After importing `database.sql`, use these credentials to log in:
 
 ## Screenshots
 
-> _(Add your screenshots here)_
+![Online Examination System in PHP & MySQL](docs/screenshots/00-cover.webp)
 
-| Page | Description |
+| | |
 |---|---|
-| `homepage.png` | Public landing page with exam cards |
-| `admin-dashboard.png` | Admin dashboard with stats & charts |
-| `exam-management.png` | Exam cards grid with live badge |
-| `question-management.png` | Add question + CSV import tabs |
-| `results-analytics.png` | Results with donut chart + answer review |
-| `student-exam.png` | Student exam engine in fullscreen |
-| `users-management.png` | User management with role badges |
+| **Admin dashboard**<br><img src="docs/screenshots/04-admin-dashboard.webp" width="420"> | **Exam management**<br><img src="docs/screenshots/05-exams.webp" width="420"> |
+| **Question manager**<br><img src="docs/screenshots/07-questions.webp" width="420"> | **CSV question import**<br><img src="docs/screenshots/09-csv-import.webp" width="420"> |
+| **Student profile & exam history**<br><img src="docs/screenshots/11-student-profile.webp" width="420"> | **Results analytics**<br><img src="docs/screenshots/13-results-analytics.webp" width="420"> |
+| **Answer review**<br><img src="docs/screenshots/14-answer-review.webp" width="420"> | **Student dashboard**<br><img src="docs/screenshots/15-student-dashboard.webp" width="420"> |
+| **Exam engine with timer & palette**<br><img src="docs/screenshots/18-exam-screen.webp" width="420"> | **Proctoring warning**<br><img src="docs/screenshots/19-proctoring-warning.webp" width="420"> |
+| **Instant result**<br><img src="docs/screenshots/20-result.webp" width="420"> | **My Results**<br><img src="docs/screenshots/21-my-results.webp" width="420"> |
+
+🎬 **Video demo:** [Watch on YouTube](https://youtu.be/_X81SXrC61A)
 
 ---
 
@@ -658,7 +660,7 @@ After importing `database.sql`, use these credentials to log in:
 - [x] Public homepage with exam listing
 - [ ] Email notifications (exam reminders, result emails)
 - [ ] Exportable result reports (PDF / Excel)
-- [ ] Examiner role with restricted access
+- [x] Examiner role with restricted access (exams, questions and results only)
 - [ ] Question bank / tag-based question pools
 - [ ] Randomise question order per student
 - [ ] Multi-language support

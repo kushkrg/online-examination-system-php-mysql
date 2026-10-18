@@ -17,6 +17,7 @@
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .btn-primary { background-color: #4F46E5; border-color: #4F46E5; }
         .btn-primary:hover { background-color: #4338ca; border-color: #4338ca; }
+        .bg-opacity-15 { --bs-bg-opacity: .15; } /* not a built-in Bootstrap 5.3 utility */
     </style>
 </head>
 <body>
@@ -36,21 +37,25 @@
                             <i class="bi bi-card-checklist"></i> Exams
                         </a>
                     </li>
+                    <?php if (\App\Helpers\AuthHelper::isAdmin()): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/admin/students') !== false) ? 'active' : '' ?>" href="/admin/students">
                             <i class="bi bi-people"></i> Students
                         </a>
                     </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/admin/results') !== false) ? 'active' : '' ?>" href="/admin/results">
                             <i class="bi bi-graph-up"></i> Results
                         </a>
                     </li>
+                    <?php if (\App\Helpers\AuthHelper::isAdmin()): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/admin/users') !== false) ? 'active' : '' ?>" href="/admin/users">
                             <i class="bi bi-shield-lock"></i> Users
                         </a>
                     </li>
+                    <?php endif; ?>
                     <li class="nav-item mt-4">
                         <a class="nav-link text-danger" href="/logout">
                             <i class="bi bi-box-arrow-right"></i> Logout
@@ -64,9 +69,9 @@
                 <div class="d-flex justify-content-between align-items-center top-navbar">
                     <h5 class="m-0 fw-bold"><?= $title ?? 'Dashboard' ?></h5>
                     <div class="d-flex align-items-center">
-                        <span class="me-3 fw-medium">Admin Portal</span>
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px; font-weight:bold;">
-                            A
+                        <span class="me-3 fw-medium"><?= \App\Helpers\AuthHelper::isAdmin() ? 'Admin Portal' : 'Examiner Portal' ?></span>
+                        <div class="<?= \App\Helpers\AuthHelper::isAdmin() ? 'bg-primary' : 'bg-warning' ?> text-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px; font-weight:bold;" title="<?= htmlspecialchars($_SESSION['user_name'] ?? '') ?>">
+                            <?= htmlspecialchars(strtoupper(mb_substr($_SESSION['user_name'] ?? 'A', 0, 1))) ?>
                         </div>
                     </div>
                 </div>

@@ -27,8 +27,29 @@ class StudentController {
         ob_start();
         require_once __DIR__ . '/../Views/student/dashboard.php';
         $content = ob_get_clean();
-        
+
         require_once __DIR__ . '/../Views/layouts/student.php';
+    }
+
+    /**
+     * Loads a published exam, or sends the student back to the dashboard
+     * when it does not exist or is outside its start/end window.
+     */
+    private function getLiveExamOrRedirect($exam_id) {
+        $stmt = $this->db->prepare("SELECT * FROM exams WHERE id = :id AND status = 'published'");
+        $stmt->execute(['id' => $exam_id]);
+        $exam = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$exam) {
+            header('Location: /student/dashboard');
+            exit;
+        }
+        $availability = Exam::availability($exam);
+        if ($availability !== 'live') {
+            header('Location: /student/dashboard?notice=' . $availability);
+            exit;
+        }
+        return $exam;
     }
 
     public function instructions() {
@@ -38,39 +59,47 @@ class StudentController {
             exit;
         }
 
-        $query = "SELECT * FROM exams WHERE id = :id AND status = 'published'";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute(['id' => $exam_id]);
-        $exam = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$exam) {
-            header('Location: /student/dashboard');
-            exit;
-        }
+        $exam = $this->getLiveExamOrRedirect($exam_id);
 
         require_once __DIR__ . '/../Views/student/exam_instructions.php';
     }
 
     public function startExam() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $exam_id = $_POST['exam_id'];
-            $city = $_POST['city'];
-            
+            $exam_id = $_POST['exam_id'] ?? null;
+            if (!$exam_id) {
+                header('Location: /student/dashboard');
+                exit;
+            }
+            $exam = $this->getLiveExamOrRedirect($exam_id);
+
             $attemptModel = new \App\Models\Attempt($this->db);
-            $attempt_id = $attemptModel->startAttempt($_SESSION['user_id'], $exam_id);
-            
+            $attempt_id = $attemptModel->startAttempt($_SESSION['user_id'], $exam['id']);
+
             $_SESSION['active_attempt_id'] = $attempt_id;
-            
-            header("Location: /student/exam/active?id=" . $exam_id);
+
+            header("Location: /student/exam/active?id=" . $exam['id']);
             exit;
         }
+        header('Location: /student/dashboard');
+        exit;
     }
 
     public function activeExam() {
         $exam_id = $_GET['id'] ?? null;
         $attempt_id = $_SESSION['active_attempt_id'] ?? null;
-        
+
         if (!$exam_id || !$attempt_id) {
+            header('Location: /student/dashboard');
+            exit;
+        }
+
+        $attemptModel = new \App\Models\Attempt($this->db);
+        $attempt = $attemptModel->getAttempt($attempt_id);
+
+        // The session's attempt must belong to this student and this exam
+        if (!$attempt || $attempt['user_id'] != $_SESSION['user_id'] || $attempt['exam_id'] != $exam_id) {
+            unset($_SESSION['active_attempt_id']);
             header('Location: /student/dashboard');
             exit;
         }
@@ -79,22 +108,20 @@ class StudentController {
         $examQuery->execute(['id' => $exam_id]);
         $exam = $examQuery->fetch(\PDO::FETCH_ASSOC);
 
-        $attemptModel = new \App\Models\Attempt($this->db);
-        $attempt = $attemptModel->getAttempt($attempt_id);
-        
+        // Time left is the shorter of the exam duration and the time until the exam window closes
         $start_time = strtotime($attempt['start_time']);
-        $duration_seconds = $exam['duration_minutes'] * 60;
-        $elapsed = time() - $start_time;
-        $remaining_seconds = max(0, $duration_seconds - $elapsed);
-        
-        if ($remaining_seconds <= 0 || $attempt['status'] === 'completed') {
+        $duration_left = ($exam['duration_minutes'] * 60) - (time() - $start_time);
+        $window_left = strtotime($exam['end_time']) - time();
+        $remaining_seconds = max(0, min($duration_left, $window_left));
+
+        if ($remaining_seconds <= 0 || $attempt['status'] !== 'in_progress') {
             header("Location: /student/exam/submit?attempt_id=" . $attempt_id);
             exit;
         }
 
         $questionModel = new \App\Models\Question($this->db);
         $questions = $questionModel->getByExamId($exam_id);
-        
+
         $savedAnswers = $attemptModel->getSavedAnswers($attempt_id);
 
         require_once __DIR__ . '/../Views/student/exam_active.php';
@@ -104,12 +131,15 @@ class StudentController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents('php://input'), true);
             $attempt_id = $_SESSION['active_attempt_id'] ?? null;
-            
+
             if ($attempt_id && isset($data['question_id']) && isset($data['option_id'])) {
                 $attemptModel = new \App\Models\Attempt($this->db);
-                $attemptModel->saveAnswer($attempt_id, $data['question_id'], $data['option_id']);
-                echo json_encode(['status' => 'success']);
-                exit;
+                $attempt = $attemptModel->getAttempt($attempt_id);
+                if ($attempt && $attempt['user_id'] == $_SESSION['user_id'] && $attempt['status'] === 'in_progress') {
+                    $attemptModel->saveAnswer($attempt_id, $data['question_id'], $data['option_id']);
+                    echo json_encode(['status' => 'success']);
+                    exit;
+                }
             }
         }
         http_response_code(400);
@@ -120,6 +150,12 @@ class StudentController {
         $attempt_id = $_GET['attempt_id'] ?? $_SESSION['active_attempt_id'] ?? null;
         if ($attempt_id) {
             $attemptModel = new \App\Models\Attempt($this->db);
+            $attempt = $attemptModel->getAttempt($attempt_id);
+            // Students can only submit their own attempts
+            if (!$attempt || $attempt['user_id'] != $_SESSION['user_id']) {
+                header("Location: /student/dashboard");
+                exit;
+            }
             $attemptModel->evaluateAttempt($attempt_id);
             unset($_SESSION['active_attempt_id']);
             header("Location: /student/exam/result?id=" . $attempt_id);
@@ -138,8 +174,8 @@ class StudentController {
 
         $attemptModel = new \App\Models\Attempt($this->db);
         $result = $attemptModel->getResultDetails($attempt_id);
-        
-        if ($result['user_id'] != $_SESSION['user_id']) {
+
+        if (!$result || $result['user_id'] != $_SESSION['user_id']) {
             header('Location: /student/dashboard');
             exit;
         }
@@ -148,7 +184,19 @@ class StudentController {
         ob_start();
         require_once __DIR__ . '/../Views/student/result.php';
         $content = ob_get_clean();
-        
+
+        require_once __DIR__ . '/../Views/layouts/student.php';
+    }
+
+    public function myResults() {
+        $attemptModel = new \App\Models\Attempt($this->db);
+        $results = $attemptModel->getResultsForStudent($_SESSION['user_id']);
+
+        $title = 'My Results';
+        ob_start();
+        require_once __DIR__ . '/../Views/student/my_results.php';
+        $content = ob_get_clean();
+
         require_once __DIR__ . '/../Views/layouts/student.php';
     }
 

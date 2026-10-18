@@ -85,7 +85,7 @@ $accuracy = ($totalAnswered > 0) ? round(($result['correct_answers'] / $totalAns
                                     <i class="bi bi-exclamation-triangle-fill fs-2 me-3 text-warning"></i> 
                                     <div>
                                         <strong>Proctoring Notice:</strong><br>
-                                        We recorded <span class="fw-bold text-danger"><?= $result['tab_switches'] ?></span> tab-switch warnings during your exam session.
+                                        We recorded <span class="fw-bold text-danger"><?= $result['tab_switches'] ?></span> proctoring warning<?= $result['tab_switches'] == 1 ? '' : 's' ?> (tab switches or leaving full screen) during your exam session.
                                     </div>
                                 </div>
                             </div>

@@ -241,6 +241,11 @@ switch ($uri) {
         $controller->result();
         break;
 
+    case '/student/results':
+        $controller = new \App\Controllers\StudentController();
+        $controller->myResults();
+        break;
+
     case '/student/exam/violation':
         $controller = new \App\Controllers\StudentController();
         $controller->logViolation();

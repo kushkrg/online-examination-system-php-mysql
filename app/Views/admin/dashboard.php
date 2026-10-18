@@ -1,4 +1,5 @@
 <?php
+$isAdmin = \App\Helpers\AuthHelper::isAdmin();
 $passRate = ($resultStats['total_attempts'] ?? 0) > 0
     ? round(($resultStats['total_pass'] / $resultStats['total_attempts']) * 100, 1) : 0;
 ?>
@@ -7,16 +8,18 @@ $passRate = ($resultStats['total_attempts'] ?? 0) > 0
 <div class="rounded-4 p-4 mb-4 text-white" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h4 class="fw-bold mb-1">Welcome back, Admin! 👋</h4>
+            <h4 class="fw-bold mb-1">Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin') ?>! 👋</h4>
             <p class="opacity-75 mb-0">Here's what's happening in your exam system today.</p>
         </div>
         <div class="d-flex gap-2">
             <a href="/admin/exams/create" class="btn btn-light fw-semibold shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i>New Exam
             </a>
+<?php if ($isAdmin): ?>
             <a href="/admin/users/create" class="btn btn-outline-light fw-semibold">
                 <i class="bi bi-person-plus me-1"></i>Add User
             </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -26,7 +29,7 @@ $passRate = ($resultStats['total_attempts'] ?? 0) > 0
     <?php
     $cards = [
         ['label'=>'Total Exams',       'value'=>$examStats['total']??0,               'sub'=>($examStats['published']??0).' published',    'color'=>'#6366f1','icon'=>'bi-card-checklist',     'href'=>'/admin/exams'],
-        ['label'=>'Total Users',       'value'=>$userStats['total']??0,               'sub'=>($userStats['students']??0).' students',       'color'=>'#22c55e','icon'=>'bi-people-fill',        'href'=>'/admin/users'],
+        ['label'=>'Total Users',       'value'=>$userStats['total']??0,               'sub'=>($userStats['students']??0).' students',       'color'=>'#22c55e','icon'=>'bi-people-fill',        'href'=>$isAdmin ? '/admin/users' : '/admin/dashboard'],
         ['label'=>'Total Submissions', 'value'=>$resultStats['total_attempts']??0,    'sub'=>($resultStats['unique_students']??0).' unique students', 'color'=>'#f59e0b','icon'=>'bi-send-check-fill','href'=>'/admin/results'],
         ['label'=>'Pass Rate',         'value'=>$passRate.'%',                         'sub'=>($resultStats['total_pass']??0).' passed',    'color'=>'#06b6d4','icon'=>'bi-trophy-fill',        'href'=>'/admin/results'],
         ['label'=>'Avg Score',         'value'=>($resultStats['avg_score']??'—'),      'sub'=>'across all exams',                            'color'=>'#8b5cf6','icon'=>'bi-graph-up-arrow',     'href'=>'/admin/results'],
@@ -117,6 +120,10 @@ $passRate = ($resultStats['total_attempts'] ?? 0) > 0
                     ['href'=>'/admin/results',       'icon'=>'bi-graph-up-arrow',            'label'=>'View Results & Analytics','color'=>'#8b5cf6'],
                     ['href'=>'/admin/users',         'icon'=>'bi-shield-lock-fill',          'label'=>'Manage Users',          'color'=>'#ec4899'],
                 ];
+                if (!$isAdmin) {
+                    // Examiners don't manage students or user accounts
+                    $actions = array_filter($actions, fn($a) => !preg_match('#^/admin/(users|students)#', $a['href']));
+                }
                 foreach($actions as $action): ?>
                 <a href="<?=$action['href']?>" class="d-flex align-items-center gap-3 p-2 rounded-3 text-decoration-none quick-action-btn"
                    style="transition:background .15s;">

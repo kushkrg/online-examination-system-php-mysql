@@ -21,16 +21,19 @@ class AuthController {
             
             $user = $this->userModel->login($email, $password);
             
+            if ($user && ($user['status'] ?? 'active') !== 'active') {
+                $error = "Your account has been deactivated. Please contact the administrator.";
+                require_once __DIR__ . '/../Views/auth/login.php';
+                return;
+            }
+
             if ($user) {
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_role'] = $user['role'];
                 
-                if ($user['role'] === 'admin') {
-                    header('Location: /admin/dashboard');
-                } else {
-                    header('Location: /student/dashboard');
-                }
+                header('Location: ' . \App\Helpers\AuthHelper::homeFor($user['role']));
                 exit;
             } else {
                 $error = "Invalid login credentials";

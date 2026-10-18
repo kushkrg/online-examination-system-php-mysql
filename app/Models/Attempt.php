@@ -183,6 +183,22 @@ class Attempt {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getResultsForStudent($user_id) {
+        $query = "
+            SELECT ea.id, ea.score, ea.end_time, ea.tab_switches,
+                   e.title as exam_title, e.total_marks, e.passing_marks,
+                   (SELECT COUNT(*) FROM student_answers sa JOIN options o ON sa.selected_option_id = o.id WHERE sa.attempt_id = ea.id AND o.is_correct = 1) as correct_count,
+                   (SELECT COUNT(*) FROM questions q WHERE q.exam_id = e.id) as total_questions
+            FROM exam_attempts ea
+            JOIN exams e ON ea.exam_id = e.id
+            WHERE ea.user_id = :user_id AND ea.status = 'evaluated'
+            ORDER BY ea.end_time DESC
+        ";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute(['user_id' => $user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getExamList() {
         $query = "SELECT DISTINCT e.id, e.title FROM exam_attempts ea JOIN exams e ON ea.exam_id = e.id WHERE ea.status = 'evaluated' ORDER BY e.title";
         $stmt = $this->conn->prepare($query);

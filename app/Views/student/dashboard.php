@@ -2,6 +2,17 @@
     <h4 class="fw-bold m-0 text-dark">Available Exams</h4>
 </div>
 
+<?php
+$notices = [
+    'upcoming' => 'That exam has not started yet. You can attempt it once its start time arrives.',
+    'ended'    => 'That exam has ended and is no longer accepting attempts.',
+];
+if (isset($_GET['notice'], $notices[$_GET['notice']])): ?>
+    <div class="alert alert-warning d-flex align-items-center rounded-3 mb-4">
+        <i class="bi bi-clock-history me-2"></i><?= $notices[$_GET['notice']] ?>
+    </div>
+<?php endif; ?>
+
 <div class="row">
     <?php if (empty($exams)): ?>
         <div class="col-12 text-center py-5 bg-white rounded shadow-sm border-0">
@@ -10,7 +21,9 @@
             <p class="text-muted small">Please check back later when new exams are published.</p>
         </div>
     <?php else: ?>
-        <?php foreach ($exams as $exam): ?>
+        <?php foreach ($exams as $exam):
+            $availability = \App\Models\Exam::availability($exam);
+        ?>
             <div class="col-md-4 mb-4">
                 <div class="card h-100 border-0 shadow-sm hover-elevate">
                     <div class="card-body p-4">
@@ -36,7 +49,13 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white border-0 p-4 pt-0 mt-2">
-                        <a href="/student/exam/instructions?exam_id=<?= $exam['id'] ?>" class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3">Attempt Exam</a>
+                        <?php if ($availability === 'live'): ?>
+                            <a href="/student/exam/instructions?exam_id=<?= $exam['id'] ?>" class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3">Attempt Exam</a>
+                        <?php elseif ($availability === 'upcoming'): ?>
+                            <button class="btn btn-outline-secondary w-100 fw-bold py-2 rounded-3" disabled><i class="bi bi-clock me-1"></i>Starts <?= date('d M, h:i A', strtotime($exam['start_time'])) ?></button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary w-100 fw-bold py-2 rounded-3" disabled><i class="bi bi-x-circle me-1"></i>Exam Ended</button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

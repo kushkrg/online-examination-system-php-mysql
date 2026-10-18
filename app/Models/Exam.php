@@ -11,6 +11,17 @@ class Exam {
         $this->conn = $db;
     }
 
+    /**
+     * Where an exam sits in its schedule right now: 'upcoming', 'live' or 'ended'.
+     * Students may only start an exam while it is live.
+     */
+    public static function availability(array $exam, ?int $now = null): string {
+        $now = $now ?? time();
+        if ($now < strtotime($exam['start_time'])) return 'upcoming';
+        if ($now > strtotime($exam['end_time']))   return 'ended';
+        return 'live';
+    }
+
     public function getAllExams($search = '', $status = '') {
         $where = "WHERE 1=1";
         $params = [];

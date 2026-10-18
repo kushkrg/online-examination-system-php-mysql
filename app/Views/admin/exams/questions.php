@@ -12,6 +12,9 @@
     <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i> <?= $msg ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
 
+<?php if (isset($_GET['upload_error'])): ?>
+    <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i> <?= htmlspecialchars($_GET['upload_error']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+<?php endif; ?>
 <?php if (isset($_GET['import_msg'])): ?>
     <div class="alert alert-info border-0 shadow-sm alert-dismissible fade show"><i class="bi bi-cloud-upload-fill me-2"></i> <?= htmlspecialchars($_GET['import_msg']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
@@ -56,7 +59,7 @@
 
                     <div class="mb-4">
                         <label class="form-label text-muted small fw-bold">Reference Image (Optional)</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
                     </div>
                     
                     <label class="form-label text-muted small fw-bold mb-2">Options (Select the correct one)</label>
@@ -217,6 +220,10 @@
 </div>
 
 <script>
+    // Escape user-supplied text before inserting it into HTML
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 document.addEventListener("DOMContentLoaded", function() {
     // Dynamic Options Logic
     const optionsContainer = document.getElementById('options-container');
@@ -339,9 +346,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     <div class="me-3" style="max-width: 70%;">
                         <strong class="text-dark fs-6 d-block mb-1">
                             <span class="text-primary me-1">Q${startIndex + index}.</span> 
-                            ${snippet} ${hasImageBadge}
+                            ${esc(snippet)} ${hasImageBadge}
                         </strong>
-                        <span class="badge bg-light text-dark border whitespace-nowrap">${q.marks} Marks</span>
+                        <span class="badge bg-light text-dark border whitespace-nowrap">${esc(q.marks)} Marks</span>
                     </div>
                     <div class="d-flex flex-nowrap">
                         <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 me-1 view-btn" data-question='${JSON.stringify(q).replace(/'/g, "&apos;")}' title="View"><i class="bi bi-eye"></i> View</button>
@@ -423,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function openViewModal(q) {
-        document.getElementById('modal-question-text').innerHTML = q.question_text.replace(/\n/g, '<br>');
+        document.getElementById('modal-question-text').innerHTML = esc(q.question_text).replace(/\n/g, '<br>');
         document.getElementById('modal-question-marks').textContent = q.marks + ' Marks';
         
         const imgContainer = document.getElementById('modal-question-image-container');
@@ -444,7 +451,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 optsContainer.innerHTML += `
                     <div class="col-md-6">
                         <div class="p-3 rounded border ${badge} shadow-sm" style="font-size: 14px;">
-                            <span class="fw-bold me-2 opacity-75">${char}.</span> ${opt.option_text}
+                            <span class="fw-bold me-2 opacity-75">${char}.</span> ${esc(opt.option_text)}
                             ${icon}
                         </div>
                     </div>

@@ -30,7 +30,7 @@
                         <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/student/dashboard') !== false) ? 'active' : '' ?>" href="/student/dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">My Results</a>
+                        <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'], '/student/results') !== false) ? 'active' : '' ?>" href="/student/results">My Results</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">

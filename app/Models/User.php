@@ -54,8 +54,8 @@ class User {
         }
         $query = "SELECT u.id, u.name, u.email, u.city, u.status, u.created_at,
             (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id) as total_attempts,
-            (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status = 'submitted') as completed_exams,
-            (SELECT ROUND(AVG(ea.score),1) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status = 'submitted') as avg_score
+            (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status IN ('submitted','evaluated')) as completed_exams,
+            (SELECT ROUND(AVG(ea.score),1) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status IN ('submitted','evaluated')) as avg_score
             FROM " . $this->table . " u $where ORDER BY u.created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute($params);
@@ -65,8 +65,8 @@ class User {
     public function getStudentById($id) {
         $query = "SELECT u.id, u.name, u.email, u.city, u.status, u.created_at,
             (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id) as total_attempts,
-            (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status = 'submitted') as completed_exams,
-            (SELECT ROUND(AVG(ea.score),1) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status = 'submitted') as avg_score,
+            (SELECT COUNT(*) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status IN ('submitted','evaluated')) as completed_exams,
+            (SELECT ROUND(AVG(ea.score),1) FROM exam_attempts ea WHERE ea.user_id = u.id AND ea.status IN ('submitted','evaluated')) as avg_score,
             (SELECT SUM(ea.tab_switches) FROM exam_attempts ea WHERE ea.user_id = u.id) as total_violations
             FROM " . $this->table . " u WHERE u.id = :id AND role = 'student' LIMIT 1";
         $stmt = $this->conn->prepare($query);

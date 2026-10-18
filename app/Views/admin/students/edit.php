@@ -69,7 +69,7 @@
                         </div>
                         <div class="col-4">
                             <div class="bg-light rounded p-3 text-center">
-                                <div class="fw-bold fs-4 text-info"><?= $student['avg_score'] !== null ? $student['avg_score'] . '%' : '—' ?></div>
+                                <div class="fw-bold fs-4 text-info"><?= $student['avg_score'] !== null ? $student['avg_score'] : '—' ?></div>
                                 <div class="text-muted small">Avg Score</div>
                             </div>
                         </div>

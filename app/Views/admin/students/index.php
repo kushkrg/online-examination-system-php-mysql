@@ -141,7 +141,7 @@
                                 <td>
                                     <?php $avg = $s['avg_score'] ?? null; ?>
                                     <?php if ($avg !== null): ?>
-                                        <span class="fw-semibold <?= $avg >= 50 ? 'text-success' : 'text-danger' ?>"><?= $avg ?>%</span>
+                                        <span class="fw-semibold text-dark"><?= $avg ?></span>
                                     <?php else: ?>
                                         <span class="text-muted">—</span>
                                     <?php endif; ?>
@@ -190,6 +190,10 @@
 </div>
 
 <script>
+    // Escape user-supplied text before inserting it into HTML
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 function viewProfile(id) {
     document.getElementById('modal-student-name').textContent = 'Loading...';
     document.getElementById('profile-modal-body').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
@@ -208,7 +212,7 @@ function viewProfile(id) {
                     const passed = parseFloat(h.score) >= parseFloat(h.passing_marks);
                     return `<tr>
                         <td>${i+1}</td>
-                        <td class="fw-semibold">${h.title}</td>
+                        <td class="fw-semibold">${esc(h.title)}</td>
                         <td>${h.start_time ? new Date(h.start_time).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
                         <td><span class="fw-bold ${passed ? 'text-success' : 'text-danger'}">${h.score} / ${h.total_marks}</span></td>
                         <td><span class="badge ${passed ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25' : 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25'}">${passed ? 'Pass' : 'Fail'}</span></td>
@@ -221,10 +225,10 @@ function viewProfile(id) {
                     <div class="col-md-4 text-center">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold mx-auto mb-3 fs-1"
                              style="width:90px;height:90px;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
-                            ${s.name.charAt(0).toUpperCase()}
+                            ${esc(s.name.charAt(0).toUpperCase())}
                         </div>
-                        <h5 class="fw-bold mb-1">${s.name}</h5>
-                        <p class="text-muted small mb-2">${s.email}</p>
+                        <h5 class="fw-bold mb-1">${esc(s.name)}</h5>
+                        <p class="text-muted small mb-2">${esc(s.email)}</p>
                         <span class="badge ${s.status === 'active' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25' : 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25'} px-3 py-2">
                             ${s.status.charAt(0).toUpperCase() + s.status.slice(1)}
                         </span>
@@ -245,7 +249,7 @@ function viewProfile(id) {
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="card border-0 bg-light text-center py-3">
-                                    <div class="fw-bold fs-2 text-info">${s.avg_score != null ? s.avg_score + '%' : '—'}</div>
+                                    <div class="fw-bold fs-2 text-info">${s.avg_score != null ? s.avg_score : '—'}</div>
                                     <div class="text-muted small">Avg Score</div>
                                 </div>
                             </div>
@@ -257,7 +261,7 @@ function viewProfile(id) {
                             </div>
                         </div>
                         <div class="row g-2 mt-2">
-                            <div class="col-6"><small class="text-muted d-block">City</small><span class="fw-semibold">${s.city || '—'}</span></div>
+                            <div class="col-6"><small class="text-muted d-block">City</small><span class="fw-semibold">${s.city ? esc(s.city) : '—'}</span></div>
                             <div class="col-6"><small class="text-muted d-block">Joined On</small><span class="fw-semibold">${new Date(s.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</span></div>
                         </div>
                     </div>

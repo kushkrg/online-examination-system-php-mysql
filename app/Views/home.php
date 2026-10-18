@@ -97,7 +97,7 @@
                 <div class="hero-card">
                     <div class="row g-0">
                         <div class="col-4 hero-stat border-end border-white border-opacity-25">
-                            <div class="val"><?= count($exams) ?></div>
+                            <div class="val"><?= $liveCount ?></div>
                             <div class="lbl">Active Exams</div>
                         </div>
                         <div class="col-4 hero-stat border-end border-white border-opacity-25">
@@ -133,7 +133,7 @@
             <p class="text-muted mb-0">Browse all currently published exams. Register or login to attempt.</p>
         </div>
         <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-6 px-3 py-2">
-            <?= count($exams) ?> Exam(s) Live
+            <?= $liveCount ?> Exam(s) Live
         </span>
     </div>
 

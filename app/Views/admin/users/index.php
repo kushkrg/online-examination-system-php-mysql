@@ -30,7 +30,7 @@ $roleMeta = [
         <div class="card border-0 shadow-sm h-100" style="border-top:3px solid <?= $card['color'] ?> !important;">
             <div class="card-body py-3 text-center">
                 <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
-                     style="width:42px;height:42px;background:<?= str_replace(')','.15)',$card['color']) ?>;">
+                     style="width:42px;height:42px;background:<?= $card['color'] ?>26;">
                     <i class="bi <?= $card['icon'] ?>" style="color:<?= $card['color'] ?>;font-size:18px;"></i>
                 </div>
                 <div class="fw-bold fs-3 lh-1"><?= $card['value'] ?></div>
@@ -129,7 +129,7 @@ $roleMeta = [
                                 <span class="text-primary fw-semibold"><?= $u['exams_taken']??0 ?></span>
                                 <span class="text-muted small">exams</span>
                                 <?php if($u['avg_score']!==null): ?>
-                                    <span class="badge bg-light text-muted border ms-1"><?=$u['avg_score']?>% avg</span>
+                                    <span class="badge bg-light text-muted border ms-1"><?=$u['avg_score']?> avg</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span class="text-muted small">—</span>

@@ -15,7 +15,8 @@ class AdminController {
     private $userModel;
 
     public function __construct() {
-        AuthHelper::requireRole('admin');
+        // Admins and examiners share the panel; student and user management is admin-only
+        AuthHelper::requireRole(['admin', 'examiner']);
         $database = new Database();
         $this->db = $database->connect();
         $this->examModel = new Exam($this->db);
@@ -183,6 +184,7 @@ class AdminController {
     }
 
     public function students() {
+        AuthHelper::requireRole('admin');
         $search = $_GET['search'] ?? '';
         $status = $_GET['status'] ?? '';
         $students = $this->userModel->getAllStudents($search, $status);
@@ -197,6 +199,7 @@ class AdminController {
     }
 
     public function studentProfile() {
+        AuthHelper::requireRole('admin');
         header('Content-Type: application/json');
         $id = $_GET['id'] ?? null;
         if (!$id) { echo json_encode(['error' => 'Missing ID']); exit; }
@@ -207,6 +210,7 @@ class AdminController {
     }
 
     public function editStudent() {
+        AuthHelper::requireRole('admin');
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /admin/students'); exit; }
         $student = $this->userModel->getStudentById($id);
@@ -219,6 +223,7 @@ class AdminController {
     }
 
     public function updateStudent() {
+        AuthHelper::requireRole('admin');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'];
             $data = [
@@ -238,6 +243,7 @@ class AdminController {
     }
 
     public function toggleStudentStatus() {
+        AuthHelper::requireRole('admin');
         header('Content-Type: application/json');
         $id = $_GET['id'] ?? null;
         if ($id && $this->userModel->toggleStatus($id)) {
@@ -249,6 +255,7 @@ class AdminController {
     }
 
     public function deleteStudent() {
+        AuthHelper::requireRole('admin');
         header('Content-Type: application/json');
         $id = $_GET['id'] ?? null;
         if ($id && $this->userModel->deleteStudent($id)) {
@@ -265,14 +272,10 @@ class AdminController {
             $question_text = $_POST['question_text'];
             $marks = $_POST['marks'] ?? 1.00;
             
-            $image_url = null;
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                $filename = uniqid() . '.' . $ext;
-                $dest = __DIR__ . '/../../public/uploads/questions/' . $filename;
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-                    $image_url = '/uploads/questions/' . $filename;
-                }
+            [$image_url, $upload_error] = $this->handleImageUpload();
+            if ($upload_error) {
+                header("Location: /admin/questions?exam_id=$exam_id&upload_error=" . urlencode($upload_error));
+                exit;
             }
             
             $options = [];
@@ -294,6 +297,44 @@ class AdminController {
                 echo "Failed to add question.";
             }
         }
+    }
+
+    /**
+     * Validates and stores an optional question image.
+     * Returns [image_url|null, error|null]. Only real JPG, PNG, GIF and WebP images
+     * up to 5 MB are accepted, and the file extension comes from the detected image
+     * type, never from the uploaded file name.
+     */
+    private function handleImageUpload() {
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+            return [null, null];
+        }
+        if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return [null, 'The image could not be uploaded. It may be larger than the server allows.'];
+        }
+        if ($_FILES['image']['size'] > 5 * 1024 * 1024) {
+            return [null, 'The image must be 5 MB or smaller.'];
+        }
+        $allowed = [
+            IMAGETYPE_JPEG => 'jpg',
+            IMAGETYPE_PNG  => 'png',
+            IMAGETYPE_GIF  => 'gif',
+            IMAGETYPE_WEBP => 'webp',
+        ];
+        $info = @getimagesize($_FILES['image']['tmp_name']);
+        if ($info === false || !isset($allowed[$info[2]])) {
+            return [null, 'Only JPG, PNG, GIF or WebP images are allowed.'];
+        }
+
+        $dir = __DIR__ . '/../../public/uploads/questions/';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $filename = bin2hex(random_bytes(12)) . '.' . $allowed[$info[2]];
+        if (!move_uploaded_file($_FILES['image']['tmp_name'], $dir . $filename)) {
+            return [null, 'The image could not be saved. Check that public/uploads/questions is writable.'];
+        }
+        return ['/public/uploads/questions/' . $filename, null];
     }
 
     public function importQuestionsCSV() {
@@ -394,14 +435,10 @@ class AdminController {
             $question_text = $_POST['question_text'];
             $marks = $_POST['marks'] ?? 1.00;
             
-            $image_url = null;
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                $filename = uniqid() . '.' . $ext;
-                $dest = __DIR__ . '/../../public/uploads/questions/' . $filename;
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-                    $image_url = '/uploads/questions/' . $filename;
-                }
+            [$image_url, $upload_error] = $this->handleImageUpload();
+            if ($upload_error) {
+                header("Location: /admin/questions/edit?id=$id&upload_error=" . urlencode($upload_error));
+                exit;
             }
             
             $options = [];
@@ -468,6 +505,7 @@ class AdminController {
         exit;
     }
     public function users() {
+        AuthHelper::requireRole('admin');
         $search = $_GET['search'] ?? '';
         $role   = $_GET['role']   ?? '';
         $status = $_GET['status'] ?? '';
@@ -482,6 +520,7 @@ class AdminController {
     }
 
     public function createUser() {
+        AuthHelper::requireRole('admin');
         $title = 'Create New User';
         ob_start();
         require_once __DIR__ . '/../Views/admin/users/create.php';
@@ -490,6 +529,7 @@ class AdminController {
     }
 
     public function storeUser() {
+        AuthHelper::requireRole('admin');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($this->userModel->emailExists($_POST['email'])) {
                 header('Location: /admin/users/create?error=email_exists');
@@ -513,6 +553,7 @@ class AdminController {
     }
 
     public function editUser() {
+        AuthHelper::requireRole('admin');
         $id   = $_GET['id'] ?? null;
         if (!$id) { header('Location: /admin/users'); exit; }
         $user = $this->userModel->getUserById($id);
@@ -525,6 +566,7 @@ class AdminController {
     }
 
     public function updateUser() {
+        AuthHelper::requireRole('admin');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id   = $_POST['id'];
             $data = [
@@ -545,6 +587,7 @@ class AdminController {
     }
 
     public function toggleUserStatus() {
+        AuthHelper::requireRole('admin');
         header('Content-Type: application/json');
         $id = $_GET['id'] ?? null;
         if ($id && $this->userModel->toggleUserStatus($id)) {
@@ -556,6 +599,7 @@ class AdminController {
     }
 
     public function deleteUser() {
+        AuthHelper::requireRole('admin');
         header('Content-Type: application/json');
         $id = $_GET['id'] ?? null;
         if (!$id) { echo json_encode(['success' => false, 'error' => 'Missing ID']); exit; }

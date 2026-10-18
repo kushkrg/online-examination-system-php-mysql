@@ -37,9 +37,26 @@
         .palette-indicator.active-indicator { border: 2px solid #4F46E5; background: #eef2ff; }
         
         .nav-buttons { padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 15px; }
+        /* Full-screen gate and proctoring warning */
+        .fs-gate { position: fixed; inset: 0; background: rgba(17,24,39,.92); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .fs-gate.show { display: flex; }
+        .fs-gate .gate-card { background: #fff; border-radius: 16px; max-width: 460px; width: 100%; padding: 32px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+        .proctor-toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1100; background: #dc2626; color: #fff; padding: 12px 22px; border-radius: 10px; font-weight: 600; box-shadow: 0 10px 25px rgba(220,38,38,.35); display: none; }
+        .proctor-toast.show { display: block; animation: pulse 1s 2; }
     </style>
 </head>
 <body>
+    <!-- Full-screen gate: the exam can only be answered in full-screen mode -->
+    <div class="fs-gate" id="fsGate">
+        <div class="gate-card">
+            <div class="mb-3"><i class="bi bi-arrows-fullscreen text-primary" style="font-size: 2.5rem;"></i></div>
+            <h4 class="fw-bold mb-2" id="fsGateTitle">This exam runs in full-screen mode</h4>
+            <p class="text-muted mb-4" id="fsGateText">Click below to enter full screen and continue. Leaving full screen during the exam is recorded as a violation. Your timer keeps running.</p>
+            <button type="button" class="btn btn-primary btn-lg w-100 fw-bold" id="btnEnterFs"><i class="bi bi-fullscreen me-2"></i>Enter Full Screen &amp; Continue</button>
+        </div>
+    </div>
+    <div class="proctor-toast" id="proctorToast"></div>
+
 
     <div class="exam-header">
         <div>
@@ -128,6 +145,7 @@
     </div>
 
     <script>
+        let submitting = false; // set while the exam is being submitted
         const totalQuestions = <?= count($questions) ?>;
         let currentIndex = 0;
         let remainingSeconds = <?= $remaining_seconds ?>;
@@ -213,19 +231,68 @@
 
         function submitExam() {
             if (remainingSeconds > 0) {
+                submitting = true; // the confirm dialog can drop full screen; don't count that
                 if(!confirm("Are you sure you want to submit the exam? You cannot change answers after this.")) {
+                    submitting = false;
+                    if (fsSupported && !document.fullscreenElement) showGate(false);
                     return;
                 }
             }
+            submitting = true;
             window.location.href = '/student/exam/submit';
+        }
+
+        // ── Proctoring ──────────────────────────────────────────────
+        // One action (e.g. switching tabs also exits full screen) is logged once.
+        let lastViolationAt = 0;
+        function recordViolation(message) {
+            if (submitting) return;
+            const now = Date.now();
+            if (now - lastViolationAt > 2000) {
+                lastViolationAt = now;
+                fetch('/student/exam/violation', { method: 'POST' });
+            }
+            const toast = document.getElementById('proctorToast');
+            toast.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + message;
+            toast.classList.add('show');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
-                fetch('/student/exam/violation', { method: 'POST' });
-                alert("WARNING: You switched tabs! This violation has been recorded.");
+                recordViolation('WARNING: You switched tabs! This violation has been recorded.');
             }
         });
+
+        // Full-screen enforcement (skipped on browsers without the Fullscreen API, e.g. iPhone Safari)
+        const fsSupported = !!(document.documentElement.requestFullscreen && document.fullscreenEnabled);
+        const gate = document.getElementById('fsGate');
+        let enteredOnce = false;
+
+        function showGate(afterExit) {
+            if (afterExit) {
+                document.getElementById('fsGateTitle').textContent = 'You left full-screen mode';
+                document.getElementById('fsGateText').textContent = 'This has been recorded as a violation. Return to full screen to continue your exam. Your timer is still running.';
+            }
+            gate.classList.add('show');
+        }
+
+        document.getElementById('btnEnterFs').addEventListener('click', function() {
+            document.documentElement.requestFullscreen().catch(() => gate.classList.remove('show'));
+        });
+
+        document.addEventListener('fullscreenchange', function() {
+            if (document.fullscreenElement) {
+                enteredOnce = true;
+                gate.classList.remove('show');
+            } else if (!submitting) {
+                if (enteredOnce) recordViolation('WARNING: You exited full screen! This violation has been recorded.');
+                showGate(enteredOnce);
+            }
+        });
+
+        if (fsSupported && !document.fullscreenElement) showGate(false);
 
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('copy', e => e.preventDefault());

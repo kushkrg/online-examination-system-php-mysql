@@ -3,6 +3,10 @@
     <a href="/admin/questions?exam_id=<?= $question['exam_id'] ?>" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Questions</a>
 </div>
 
+<?php if (isset($_GET['upload_error'])): ?>
+    <div class="alert alert-danger border-0 shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i><?= htmlspecialchars($_GET['upload_error']) ?></div>
+<?php endif; ?>
+
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card shadow-sm border-0">
@@ -26,7 +30,7 @@
                         </div>
                         <div class="col-md-6 mb-4">
                             <label class="form-label text-muted small fw-bold">Reference Image (Optional)</label>
-                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
                             <?php if (!empty($question['image_url'])): ?>
                                 <div class="mt-2">
                                     <small class="text-muted d-block mb-1">Current Image:</small>

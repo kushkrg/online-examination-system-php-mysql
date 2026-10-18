@@ -226,6 +226,10 @@ $passRate = ($stats['total_attempts'] > 0)
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+    // Escape user-supplied text before inserting it into HTML
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 // ─── Pass / Fail Donut ───────────────────────────────────────────────────────
 const passFail = new Chart(document.getElementById('passFailChart'), {
     type: 'doughnut',
@@ -320,19 +324,19 @@ document.querySelectorAll('.review-btn').forEach(btn => {
                     html += `
                         <div class="mb-3 p-3 rounded-3 border" style="background:${cardColor};border-color:${borderCol} !important;">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <p class="fw-semibold mb-0 me-3" style="line-height:1.5;">${icon} <span class="text-primary">Q${idx+1}.</span> ${q.question_text}</p>
+                                <p class="fw-semibold mb-0 me-3" style="line-height:1.5;">${icon} <span class="text-primary">Q${idx+1}.</span> ${esc(q.question_text)}</p>
                                 ${marksText}
                             </div>
-                            ${q.image_url ? `<img src="${q.image_url}" class="img-fluid rounded mb-2 border" style="max-height:150px;">` : ''}
+                            ${q.image_url ? `<img src="${esc(q.image_url)}" class="img-fluid rounded mb-2 border" style="max-height:150px;">` : ''}
                             <div class="row g-2 mt-1">
                                 <div class="col-md-6">
                                     <div class="p-2 rounded border ${skipped ? 'bg-light text-muted' : (correct ? 'bg-success text-white border-success' : 'bg-danger text-white border-danger')}" style="font-size:13px;">
-                                        <strong>Student's Answer:</strong> ${q.selected_text || '<em>Not Answered</em>'}
+                                        <strong>Student's Answer:</strong> ${q.selected_text ? esc(q.selected_text) : '<em>Not Answered</em>'}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-2 rounded border bg-success bg-opacity-10 text-success border-success" style="font-size:13px;">
-                                        <strong>Correct Answer:</strong> ${q.correct_text || '—'}
+                                        <strong>Correct Answer:</strong> ${q.correct_text ? esc(q.correct_text) : '—'}
                                     </div>
                                 </div>
                             </div>
